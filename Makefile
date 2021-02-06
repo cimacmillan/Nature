@@ -39,29 +39,27 @@ DEPENDENCY_FLAGS = $(SDL_CFLAGS) $(GLM_CFLAGS) $(CL_CFLAGS)
 all:Build
 
 
+######
+# Get all the source files 4 directories deep
+SOURCES = $(wildcard ${S_DIR}/*.cpp) $(wildcard ${S_DIR}/*/*.cpp) $(wildcard ${S_DIR}/*/*/*.cpp) $(wildcard ${S_DIR}/*/*/*/*.cpp)
+
+
 ########
 #   Object list
-#
-OBJ = $(B_DIR)/$(FILE).o
+OBJECTS = $(patsubst ${S_DIR}%.cpp,${B_DIR}%.o,$(SOURCES))
 
 
-OBJ_TEST = ${B_DIR}/test.o
+${B_DIR}/%.o: ${S_DIR}/%.cpp
+	@echo build $@ from $<
+	mkdir -p ${dir $@}
+	${CC} ${CC_OPTS} $< ${DEPENDENCY_FLAGS} -o $@
 
-
-########
-#   Objects
-$(B_DIR)/$(FILE).o : $(S_DIR)/$(FILE).cpp $(S_DIR)/SDLauxiliary.h $(S_DIR)/TestModelH.h
-	$(CC) $(CC_OPTS) -o $(B_DIR)/$(FILE).o $(S_DIR)/$(FILE).cpp $(DEPENDENCY_FLAGS)
-
-
-${B_DIR}/test.o : ${S_DIR}/test/Test.cpp
-	${CC} $(CC_OPTS) -o $(B_DIR)/test.o  $(S_DIR)/test/Test.cpp
 
 ########
 #   Main build rule
-Build : $(OBJ) ${OBJ_TEST} Makefile
-	$(CC) $(LN_OPTS) -o $(EXEC) $(OBJ) ${OBJ_TEST} $(SDL_LDFLAGS)
+Build : ${OBJECTS} Makefile
+	$(CC) $(LN_OPTS) -o $(EXEC) $(OBJECTS) $(SDL_LDFLAGS)
 
 
 clean:
-	rm -f $(B_DIR)/*
+	rm -rf $(B_DIR)/*
