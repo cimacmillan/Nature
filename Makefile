@@ -1,6 +1,6 @@
 FILE=skeleton
-GLMDIR=../glm/
-SDLDIR=../sdl2/
+GLMDIR=include/glm/
+SDLDIR=include/sdl2/
 CLDIR=../
 
 ########
@@ -32,6 +32,7 @@ SDL_CFLAGS := $(shell sdl2-config --cflags)
 GLM_CFLAGS := -I$(GLMDIR) -I${SDLDIR}
 CL_CFLAGS := -I$(CLDIR)
 SDL_LDFLAGS := $(shell sdl2-config --libs)
+DEPENDENCY_FLAGS = $(SDL_CFLAGS) $(GLM_CFLAGS) $(CL_CFLAGS)
 
 ########
 #   This is the default action
@@ -44,16 +45,22 @@ all:Build
 OBJ = $(B_DIR)/$(FILE).o
 
 
+OBJ_TEST = ${B_DIR}/test.o
+
+
 ########
 #   Objects
 $(B_DIR)/$(FILE).o : $(S_DIR)/$(FILE).cpp $(S_DIR)/SDLauxiliary.h $(S_DIR)/TestModelH.h
-	$(CC) $(CC_OPTS) -o $(B_DIR)/$(FILE).o $(S_DIR)/$(FILE).cpp $(SDL_CFLAGS) $(GLM_CFLAGS) $(CL_CFLAGS)
+	$(CC) $(CC_OPTS) -o $(B_DIR)/$(FILE).o $(S_DIR)/$(FILE).cpp $(DEPENDENCY_FLAGS)
 
+
+${B_DIR}/test.o : ${S_DIR}/test/Test.cpp
+	${CC} $(CC_OPTS) -o $(B_DIR)/test.o  $(S_DIR)/test/Test.cpp
 
 ########
 #   Main build rule
-Build : $(OBJ) Makefile
-	$(CC) $(LN_OPTS) -o $(EXEC) $(OBJ) $(SDL_LDFLAGS)
+Build : $(OBJ) ${OBJ_TEST} Makefile
+	$(CC) $(LN_OPTS) -o $(EXEC) $(OBJ) ${OBJ_TEST} $(SDL_LDFLAGS)
 
 
 clean:

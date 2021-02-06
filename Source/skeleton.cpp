@@ -18,6 +18,8 @@
 
 #include "./opencl/opencl.h"
 
+#include "./test/Test.hpp"
+
 using namespace std;
 using glm::vec2;
 using glm::ivec2;
@@ -67,6 +69,9 @@ void Draw(screen* screen);
 
 int main( int argc, char* argv[] )
 {
+
+    Dog* dog = new Dog();
+    dog->woof();
 
   screen *screen = InitializeSDL( SCREEN_WIDTH, SCREEN_HEIGHT, FULLSCREEN_MODE );
 

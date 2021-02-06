@@ -1,5 +1,5 @@
-#include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
+#include "glm.hpp"
+#include "gtx/transform.hpp"
 #include <stdint.h>
 #include <vector>
 

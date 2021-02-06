@@ -2,8 +2,8 @@
 #define SDL_AUXILIARY_H
 
 #include "SDL.h"
+#include "glm.hpp"
 #include <iostream>
-#include <glm/glm.hpp>
 #include <stdint.h>
 
 typedef struct{
