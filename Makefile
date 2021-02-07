@@ -42,6 +42,8 @@ all:Build
 ######
 # Get all the source files 4 directories deep
 SOURCES = $(wildcard ${S_DIR}/*.cpp) $(wildcard ${S_DIR}/*/*.cpp) $(wildcard ${S_DIR}/*/*/*.cpp) $(wildcard ${S_DIR}/*/*/*/*.cpp)
+OLD_HEADERS = $(wildcard ${S_DIR}/*.h) $(wildcard ${S_DIR}/*/*.h) $(wildcard ${S_DIR}/*/*/*.h) $(wildcard ${S_DIR}/*/*/*/*.h)
+HEADERS = $(wildcard ${S_DIR}/*.hpp) $(wildcard ${S_DIR}/*/*.hpp) $(wildcard ${S_DIR}/*/*/*.hpp) $(wildcard ${S_DIR}/*/*/*/*.hpp)
 
 
 ########
@@ -49,7 +51,8 @@ SOURCES = $(wildcard ${S_DIR}/*.cpp) $(wildcard ${S_DIR}/*/*.cpp) $(wildcard ${S
 OBJECTS = $(patsubst ${S_DIR}%.cpp,${B_DIR}%.o,$(SOURCES))
 
 
-${B_DIR}/%.o: ${S_DIR}/%.cpp
+${B_DIR}/%.o: ${S_DIR}/%.cpp ${OLD_HEADERS} ${HEADERS}
+	@echo ${OLD_HEADERS}
 	@echo build $@ from $<
 	mkdir -p ${dir $@}
 	${CC} ${CC_OPTS} $< ${DEPENDENCY_FLAGS} -o $@
