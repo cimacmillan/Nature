@@ -117,15 +117,14 @@ void GenerateTerrainNoise(float noise[NOISE_SIZE][NOISE_SIZE]) {
 void ConstructScene(Scene &scene){
 
   int tex_rock = LoadTexture(scene.textures, "./tex_a.png");
-  int tex_blue = LoadTexture(scene.textures, "./tex_b.png");
+//   int tex_blue = LoadTexture(scene.textures, "./tex_b.png");
 
-  cout << tex_rock << " " << tex_blue << endl;
 
   LoadTestModel(scene.triangles);
-  load_obj(scene.triangles, "./sphere.obj", vec4(-0.4f, 0.f, -2.0f, 0.f), vec4(0.4f, -0.4f, -0.4f, 1.0f), tex_rock);
-  load_obj(scene.triangles, "./fox.obj", vec4(-0.4f, 1.0f, -2.0f, 0.f), vec4(0.01f, -0.01f, -0.01f, 1.0f), tex_blue);
-  // load_obj(scene.triangles, "./sphere.obj", vec4(0.4f, 0.f, -2.0f, 0.f), vec4(0.3f, 0.3f, 0.3f, 1.0f), tex_blue);
-  // load_obj(scene.triangles, "./test.obj");
+//   load_obj(scene.triangles, "./sphere.obj", vec4(-0.4f, 0.f, -2.0f, 0.f), vec4(0.4f, -0.4f, -0.4f, 1.0f), tex_rock);
+//   load_obj(scene.triangles, "./fox.obj", vec4(-0.4f, 1.0f, -2.0f, 0.f), vec4(0.01f, -0.01f, -0.01f, 1.0f), tex_blue);
+//   // load_obj(scene.triangles, "./sphere.obj", vec4(0.4f, 0.f, -2.0f, 0.f), vec4(0.3f, 0.3f, 0.3f, 1.0f), tex_blue);
+//   // load_obj(scene.triangles, "./test.obj");
 
   scene.indirectLight = 0.5f*vec3( 1, 1, 1 );
   scene.lights.push_back(Light(

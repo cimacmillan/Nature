@@ -11,6 +11,7 @@
 #define DEVICE CL_DEVICE_TYPE_DEFAULT
 #endif
 
+
 cl_float3 pattern = (cl_float3){0.529f, 0.808f, 0.922f};
 cl_uint blank_write_buffer[SCREEN_WIDTH * SCREEN_HEIGHT];
 cl_float3 blank_screen_buffer[SCREEN_WIDTH * SCREEN_HEIGHT];

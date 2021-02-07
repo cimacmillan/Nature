@@ -109,7 +109,7 @@ screen* InitializeSDL(int width,int height, bool fullscreen)
     {
       flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
     }
-  s->window = SDL_CreateWindow("COMS30115",
+  s->window = SDL_CreateWindow("Nature",
 				      SDL_WINDOWPOS_UNDEFINED,
 				      SDL_WINDOWPOS_UNDEFINED,
 				      width, height,flags);

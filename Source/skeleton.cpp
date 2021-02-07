@@ -116,49 +116,9 @@ void Draw (screen* screen) {
   CLClearScreen(opencl);
   CLRegisterLights(opencl, scene.lights);
 
-  cameraMatrix = TransformationMatrix(-cameraPos, cameraRot);
-
-  for (int i = 0; i < (int)scene.triangles.size(); i++) {
-
-    if (FACE_CULLING && scene.triangles[i].culled == true) {
-        float dot = glm::dot(vec3(scene.triangles[i].culling_pos - cameraPos), vec3(scene.triangles[i].culling_normal));
-        if(dot >= 0) continue;
-    }
-
-    vector<Vertex> vertices(3);
-    vertices[0].position = scene.triangles[i].v0;
-    vertices[1].position = scene.triangles[i].v1;
-    vertices[2].position = scene.triangles[i].v2;
-    vertices[0].transformed = cameraMatrix * scene.triangles[i].v0;
-    vertices[1].transformed = cameraMatrix * scene.triangles[i].v1;
-    vertices[2].transformed = cameraMatrix * scene.triangles[i].v2;
-    vertices[0].normal = scene.triangles[i].normal0;
-    vertices[1].normal = scene.triangles[i].normal1;
-    vertices[2].normal = scene.triangles[i].normal2;
-    vertices[0].color = scene.triangles[i].color;
-    vertices[1].color = scene.triangles[i].color;
-    vertices[2].color = scene.triangles[i].color;
-    vertices[0].uv = scene.triangles[i].uv0;
-    vertices[1].uv = scene.triangles[i].uv1;
-    vertices[2].uv = scene.triangles[i].uv2;
+// Draw here
 
 
-    vector<Pixel> vertexPixels;
-    vertex_shader.compute(vertices, vertexPixels);
-    for(int p = 0; p < (int)(vertexPixels.size() - 2); p++) {
-      Pixel pixels[3] = {vertexPixels[0], vertexPixels[p + 1], vertexPixels[p + 2]};
-      CLDrawPolygon(opencl, pixels, scene, scene.triangles[i].tex_id);
-    }
-    // vector<Pixel> vertexPixels(3);
-    // for( int i=0; i<3; ++i )
-    //    vertex_shader.compute( vertices[i], cameraMatrix, vertexPixels[i]);
-
-
-    // CLDrawPolygon(opencl, vertexPixels, scene, scene.triangles[i].tex_id);
-    // DrawPolygon(screen, vertexPixels, depth_buffer, pixel_buffer, colour_buffer, scene);
-  }
-
-  // PostShader(screen, scene, depth_buffer, pixel_buffer, colour_buffer);
 
   CLPostProcess(opencl);
   CLCopyToSDL(opencl, screen);
