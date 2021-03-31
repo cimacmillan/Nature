@@ -132,12 +132,6 @@ void ConstructScene(Scene &scene){
       14.f*vec3( 1, 1, 1 )
   ));
 
-
-  // Triangle test(vec4(0, 0, -2, 1), vec4(1, 0, -2, 1), vec4(0, 1, -2, 1),
-  //               vec4(0, 0, -1, 1), vec4(0, 0, -1, 1), vec4(0, 0, -1, 1),
-  //               vec2(0, 0), vec2(1, 0), vec2(0, 1),
-  //               tex_rock);
-  // scene.triangles.push_back(test);
   scene.lights.push_back(Light(
       vec4(-0.9,0.5,-0.7, 1),
       8.f*vec3( 1, 0.1, 0.1 )

@@ -91,36 +91,15 @@ int main( int argc, char* argv[] )
 void Init() {
   ConstructScene(scene);
   InitOpenCL(opencl, scene);
-  CLPostProcessInit(opencl);
   PostShaderInit();
   CLRegisterTextures(opencl, scene.textures);
 }
 
-
-void ClearDepthBuffer() {
-  for( int y=0; y<SCREEN_HEIGHT; ++y ) {
-    for( int x=0; x<SCREEN_WIDTH; ++x ) {
-      depth_buffer[x][y] = 0;
-      pixel_buffer[x][y].dead = 1;
-      colour_buffer[x][y] = BLACK;
-    }
-  }
-}
-
 /*Place your drawing here*/
 void Draw (screen* screen) {
-
-  /* Clear buffer */
-  // memset(screen->buffer, 0, screen->height*screen->width*sizeof(uint32_t));
-  // ClearDepthBuffer();
   CLClearScreen(opencl);
   CLRegisterLights(opencl, scene.lights);
-
-// Draw here
-
-
-
-  CLPostProcess(opencl);
+  CLRender(opencl);
   CLCopyToSDL(opencl, screen);
 }
 
@@ -201,15 +180,4 @@ bool Update() {
 
 }
 
-/*
-• Shadows
-• Loading of general models • Textures
-• Normal mapping
-• Parallax mapping
-• optimizations
-• level-of-detail
-• hierarchical models
-• efficient data-structures
-• more advanced clipping
-• etc.
-*/
+

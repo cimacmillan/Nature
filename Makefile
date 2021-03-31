@@ -45,7 +45,6 @@ SOURCES = $(wildcard ${S_DIR}/*.cpp) $(wildcard ${S_DIR}/*/*.cpp) $(wildcard ${S
 OLD_HEADERS = $(wildcard ${S_DIR}/*.h) $(wildcard ${S_DIR}/*/*.h) $(wildcard ${S_DIR}/*/*/*.h) $(wildcard ${S_DIR}/*/*/*/*.h)
 HEADERS = $(wildcard ${S_DIR}/*.hpp) $(wildcard ${S_DIR}/*/*.hpp) $(wildcard ${S_DIR}/*/*/*.hpp) $(wildcard ${S_DIR}/*/*/*/*.hpp)
 
-
 ########
 #   Object list
 OBJECTS = $(patsubst ${S_DIR}%.cpp,${B_DIR}%.o,$(SOURCES))

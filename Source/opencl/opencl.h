@@ -4,8 +4,9 @@
 #include "./lib/util.hpp" // OpenCL utility library
 #include "./lib/err_code.h"
 #include "../kernel/types.h"
+#include <vector>
 
-#define SOURCE_RENDERER "./Source/kernel/shader_pixel.cl"
+#define SOURCE_RENDERER "./Source/kernel/shader.cl"
 
 #ifndef DEVICE
 #define DEVICE CL_DEVICE_TYPE_DEFAULT
@@ -27,12 +28,7 @@ struct ocl {
 
     cl::Program renderer;
 
-    cl::Kernel helloWorld;
-    cl::Kernel DrawPolygon;
-    cl::Kernel ClearScreen;
-    cl::Kernel PostProcess;
-    cl::Kernel PostProcessInit;
-    cl::Kernel PrePass;
+    cl::Kernel Shader;
 
     cl::Buffer screen_write;
     cl::Buffer depth_buffer;
@@ -43,10 +39,9 @@ struct ocl {
     cl::Buffer kernel_sin;
     cl::Buffer kernel_regular;
 
-    vector<cl::Buffer> texture_buffers;
+    std::vector<cl::Buffer> texture_buffers;
 
 };
-
 
 
 void initBlankBuffers() {
@@ -57,7 +52,7 @@ void initBlankBuffers() {
   }
 }
 
-void CLRegisterTextures(ocl &opencl, vector<Texture> textures) {
+void CLRegisterTextures(ocl &opencl, std::vector<Texture> textures) {
   opencl.texture_buffers.push_back(cl::Buffer(opencl.context, CL_MEM_READ_ONLY, sizeof(cl_float4) * 8 * 8)); //Empty texture
   for (int i = 0; i < textures.size(); i++) {
     Texture texture = textures[i];
@@ -121,8 +116,8 @@ void CLCopyToSDL(ocl &opencl, screen* screen) {
   );
 }
 
-void CLRegisterLights(ocl &opencl, vector<Light> lights){
-  vector<cl_light> cl_lights(lights.size());
+void CLRegisterLights(ocl &opencl, std::vector<Light> lights){
+  std::vector<cl_light> cl_lights(lights.size());
   for(int i = 0; i < lights.size(); i++){
     cl_lights[i] = toClLight(lights[i]);
   }
@@ -130,86 +125,16 @@ void CLRegisterLights(ocl &opencl, vector<Light> lights){
   opencl.queue.enqueueWriteBuffer(opencl.light_buffer, false, 0, lights.size() * sizeof(cl_light), cl_lights.data());
 }
 
-void CLDrawPolygon(ocl &opencl, Pixel vertexPixels[3], Scene& scene, int tex_id){
-  // cl::Buffer light_buffer(opencl.context, begin(cl_lights), end(cl_lights), true);
-
-  int minX = min(vertexPixels[0].x, min(vertexPixels[1].x, vertexPixels[2].x));
-  int maxX = max(vertexPixels[0].x, max(vertexPixels[1].x, vertexPixels[2].x));
-  int minY = min(vertexPixels[0].y, min(vertexPixels[1].y, vertexPixels[2].y));
-  int maxY = max(vertexPixels[0].y, max(vertexPixels[1].y, vertexPixels[2].y));
-  if(minX < 0) minX = 0;
-  if(minY < 0) minY = 0;
-  if(maxX >= SCREEN_WIDTH) maxX = SCREEN_WIDTH - 1;
-  if(maxY >= SCREEN_HEIGHT) maxY = SCREEN_HEIGHT - 1;
-  int width = maxX - minX;
-  int height = maxY - minY;
-  if(width == 0 || height == 0) return;
-
-  cl_pixel a = toClPixel(vertexPixels[0]);
-  cl_pixel b = toClPixel(vertexPixels[1]);
-  cl_pixel c = toClPixel(vertexPixels[2]);
-
-  opencl.DrawPolygon.setArg(0,opencl.screen_write);
-  opencl.DrawPolygon.setArg(1,opencl.depth_buffer);
-  opencl.DrawPolygon.setArg(2,a);
-  opencl.DrawPolygon.setArg(3,b);
-  opencl.DrawPolygon.setArg(4,c);
-  opencl.DrawPolygon.setArg(5,SCREEN_WIDTH);
-
-  opencl.DrawPolygon.setArg(6,minX);
-  opencl.DrawPolygon.setArg(7,minY);
-
-  opencl.DrawPolygon.setArg(8,opencl.light_buffer);
-  opencl.DrawPolygon.setArg(9,(int)scene.lights.size());
-
-  cl_float3 indirectLight = (cl_float3){scene.indirectLight.x, scene.indirectLight.y, scene.indirectLight.z};
-  opencl.DrawPolygon.setArg(10,indirectLight);
-
-  opencl.DrawPolygon.setArg(11, tex_id);
-  opencl.DrawPolygon.setArg(12, opencl.texture_buffers[tex_id]);
-  opencl.DrawPolygon.setArg(13, scene.textures[tex_id - 1].width);
-  opencl.DrawPolygon.setArg(14, scene.textures[tex_id - 1].height);
-
-  opencl.queue.enqueueNDRangeKernel(opencl.DrawPolygon,cl::NullRange,cl::NDRange(width, height),cl::NullRange);
-
-}
-
-void CLPostProcess(ocl &opencl) {
-
-  opencl.PrePass.setArg(0,opencl.screen_write);
-  opencl.PrePass.setArg(1,opencl.temp_screen);
-  opencl.PrePass.setArg(2,opencl.depth_buffer);
-  opencl.PrePass.setArg(3,opencl.kernel_sin);
-  opencl.PrePass.setArg(4,opencl.kernel_regular);
-  opencl.PrePass.setArg(5, 1);
-  opencl.queue.enqueueNDRangeKernel(opencl.PrePass,cl::NullRange,cl::NDRange(SCREEN_WIDTH, SCREEN_HEIGHT),cl::NullRange);
-  opencl.PrePass.setArg(0,opencl.temp_screen);
-  opencl.PrePass.setArg(1,opencl.screen_write);
-  opencl.PrePass.setArg(5, 0);
-  opencl.queue.enqueueNDRangeKernel(opencl.PrePass,cl::NullRange,cl::NDRange(SCREEN_WIDTH, SCREEN_HEIGHT),cl::NullRange);
-
-  opencl.PostProcess.setArg(0,opencl.screen_write);
-  opencl.PostProcess.setArg(1,opencl.depth_buffer);
-  opencl.PostProcess.setArg(2,opencl.write_buffer);
-  opencl.queue.enqueueNDRangeKernel(opencl.PostProcess,cl::NullRange,cl::NDRange(SCREEN_WIDTH, SCREEN_HEIGHT),cl::NullRange);
-
-}
-
-void CLPostProcessInit(ocl &opencl) {
-
-    opencl.PostProcessInit.setArg(0,opencl.kernel_sin);
-    opencl.PostProcessInit.setArg(1,opencl.kernel_regular);
-    opencl.queue.enqueueNDRangeKernel(opencl.PostProcessInit,cl::NullRange,cl::NDRange(1),cl::NullRange);
+void CLRender(ocl &opencl) {
+  opencl.Shader.setArg(0,opencl.write_buffer);
+  opencl.queue.enqueueNDRangeKernel(opencl.Shader,cl::NullRange,cl::NDRange(SCREEN_WIDTH, SCREEN_HEIGHT),cl::NullRange);
 }
 
 void MakeKernels(ocl &opencl, Scene &scene) {
   opencl.renderer = cl::Program(opencl.context, util::loadProgram(SOURCE_RENDERER));
   opencl.renderer.build();
 
-  opencl.DrawPolygon = cl::Kernel(opencl.renderer,"DrawPolygon");
-  opencl.PostProcess = cl::Kernel(opencl.renderer,"PostProcess");
-  opencl.PostProcessInit = cl::Kernel(opencl.renderer,"PostProcessInit");
-  opencl.PrePass = cl::Kernel(opencl.renderer,"PrePass");
+  opencl.Shader = cl::Kernel(opencl.renderer,"Shader");
 
   opencl.screen_write = cl::Buffer(opencl.context, CL_MEM_READ_WRITE, sizeof(cl_float3) * SCREEN_WIDTH * SCREEN_HEIGHT);
   opencl.temp_screen = cl::Buffer(opencl.context, CL_MEM_READ_WRITE, sizeof(cl_float3) * SCREEN_WIDTH * SCREEN_HEIGHT);
