@@ -24,7 +24,7 @@ using glm::ivec2;
 
 #include "scene.h"
 
-#include "./opencl/opencl.h"
+#include "./opencl.h"
 
 #include "./test/Test.hpp"
 

@@ -1,9 +1,10 @@
 #define __CL_ENABLE_EXCEPTIONS
 
-#include "./lib/cl.hpp"
-#include "./lib/util.hpp" // OpenCL utility library
-#include "./lib/err_code.h"
-#include "../kernel/types.h"
+#include <cl.hpp>
+#include <cl_platform.h>
+#include <util.hpp> // OpenCL utility library
+#include <err_code.h>
+#include "kernel/types.h"
 #include <vector>
 
 #define SOURCE_RENDERER "./Source/kernel/shader.cl"

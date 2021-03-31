@@ -1,6 +1,7 @@
 FILE=skeleton
 GLMDIR=include/glm/
 SDLDIR=include/sdl2/
+OCLDIR=include/cl/
 CLDIR=../
 
 ########
@@ -29,7 +30,7 @@ endif
 ########
 #       SDL options
 SDL_CFLAGS := $(shell sdl2-config --cflags)
-GLM_CFLAGS := -I$(GLMDIR) -I${SDLDIR}
+GLM_CFLAGS := -I$(GLMDIR) -I${SDLDIR} -I${OCLDIR}
 CL_CFLAGS := -I$(CLDIR)
 SDL_LDFLAGS := $(shell sdl2-config --libs)
 DEPENDENCY_FLAGS = $(SDL_CFLAGS) $(GLM_CFLAGS) $(CL_CFLAGS)
