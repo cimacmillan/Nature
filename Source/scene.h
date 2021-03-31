@@ -1,7 +1,6 @@
 #include "glm.hpp"
 #include <vector>
 #include "obj_loader.h"
-#include "lodepng.h"
 #include <cstdlib>
 
 
@@ -33,12 +32,11 @@ struct Vertex {
   vec4 transformed;
 };
 
-struct Light {
-  vec4 position;
-  vec3 power;
+struct Object {
+  vec2 position;
 
-  Light(vec4 position, vec3 power)
-  : position(position),  power(power)
+  Object(vec2 position)
+  : position(position)
   {
 
   }
@@ -54,18 +52,10 @@ struct Texture {
 
 struct Scene {
   vector<Triangle> triangles;
-  vector<Light> lights;
+  vector<Object> objects;
   vec3 indirectLight;
   vector<Texture> textures;
 };
-
-int LoadTexture(vector <Texture> &inject_into, const char * filename) {
-  Texture toAdd;
-  lodepng::decode(toAdd.image, toAdd.width, toAdd.height, filename);
-  toAdd.id = inject_into.size();
-  inject_into.push_back(toAdd);
-  return inject_into.size();
-}
 
 float random_float(){
   float r = static_cast <float> (std::rand()) / static_cast <float> (RAND_MAX);
@@ -116,10 +106,6 @@ void GenerateTerrainNoise(float noise[NOISE_SIZE][NOISE_SIZE]) {
 
 void ConstructScene(Scene &scene){
 
-  int tex_rock = LoadTexture(scene.textures, "./tex_a.png");
-//   int tex_blue = LoadTexture(scene.textures, "./tex_b.png");
-
-
   LoadTestModel(scene.triangles);
 //   load_obj(scene.triangles, "./sphere.obj", vec4(-0.4f, 0.f, -2.0f, 0.f), vec4(0.4f, -0.4f, -0.4f, 1.0f), tex_rock);
 //   load_obj(scene.triangles, "./fox.obj", vec4(-0.4f, 1.0f, -2.0f, 0.f), vec4(0.01f, -0.01f, -0.01f, 1.0f), tex_blue);
@@ -127,25 +113,7 @@ void ConstructScene(Scene &scene){
 //   // load_obj(scene.triangles, "./test.obj");
 
   scene.indirectLight = 0.5f*vec3( 1, 1, 1 );
-  scene.lights.push_back(Light(
-      vec4(0,-0.5,-0.7, 1),
-      14.f*vec3( 1, 1, 1 )
-  ));
-
-  scene.lights.push_back(Light(
-      vec4(-0.9,0.5,-0.7, 1),
-      8.f*vec3( 1, 0.1, 0.1 )
-  ));
-
-  scene.lights.push_back(Light(
-      vec4(5,3, 5, 1),
-      20.f*vec3( 1.0, 1.0, 1.0 )
-  ));
-
-  scene.lights.push_back(Light(
-      vec4(0.8,0.5,-1, 1),
-      8.f*vec3( 0.1, 0.0, 1.0 )
-  ));
+  scene.objects.push_back(Object(vec2(0, 0)));
 
   float noise[NOISE_SIZE][NOISE_SIZE];
   GenerateTerrainNoise(noise);

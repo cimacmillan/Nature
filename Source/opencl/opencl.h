@@ -12,7 +12,6 @@
 #define DEVICE CL_DEVICE_TYPE_DEFAULT
 #endif
 
-
 cl_float3 pattern = (cl_float3){0.529f, 0.808f, 0.922f};
 cl_uint blank_write_buffer[SCREEN_WIDTH * SCREEN_HEIGHT];
 cl_float3 blank_screen_buffer[SCREEN_WIDTH * SCREEN_HEIGHT];
@@ -32,7 +31,7 @@ struct ocl {
 
     cl::Buffer screen_write;
     cl::Buffer depth_buffer;
-    cl::Buffer light_buffer;
+    cl::Buffer object_buffer;
     cl::Buffer write_buffer;
     cl::Buffer temp_screen;
 
@@ -52,36 +51,6 @@ void initBlankBuffers() {
   }
 }
 
-void CLRegisterTextures(ocl &opencl, std::vector<Texture> textures) {
-  opencl.texture_buffers.push_back(cl::Buffer(opencl.context, CL_MEM_READ_ONLY, sizeof(cl_float4) * 8 * 8)); //Empty texture
-  for (int i = 0; i < textures.size(); i++) {
-    Texture texture = textures[i];
-    cl_float4* data = (cl_float4*)malloc(sizeof(cl_float4) * texture.width * texture.height);
-    for(int read = 0; read < texture.width * texture.height * 4; read += 4) {
-      unsigned char r = texture.image[read];
-      unsigned char g = texture.image[read + 1];
-      unsigned char b = texture.image[read + 2];
-      unsigned char a = texture.image[read + 3];
-
-      float red_f = (((float)r) / 255.0f);
-      float green_f = (((float)g) / 255.0f);
-      float blue_f = (((float)b) / 255.0f);
-      float a_f = (((float)a) / 255.0f);
-
-      int index = read / 4;
-
-      data[index] = (cl_float4){red_f, green_f, blue_f, a_f};
-    }
-
-    cout << "writing textures" << endl;
-
-    cl::Buffer texture_buffer = cl::Buffer(opencl.context, CL_MEM_READ_ONLY, sizeof(cl_float4) * texture.width * texture.height);
-    opencl.queue.enqueueWriteBuffer(texture_buffer, true, 0, sizeof(cl_float4) * texture.width * texture.height, data);
-    opencl.texture_buffers.push_back(texture_buffer);
-    free(data);
-  }
-}
-
 cl_pixel toClPixel(Pixel pixel) {
   cl_pixel pix = {
     pixel.dead,
@@ -96,17 +65,14 @@ cl_pixel toClPixel(Pixel pixel) {
   return pix;
 }
 
-cl_light toClLight(Light light) {
-  cl_light cllight = {
-    (cl_float4){light.position.x, light.position.y, light.position.z, light.position.w},
-    (cl_float3){light.power.x, light.power.y, light.power.z},
+cl_object toClObject(Object object) {
+  cl_object cllight = {
+    (cl_float2){object.position.x, object.position.y}
   };
   return cllight;
 }
 
 void CLClearScreen(ocl &opencl) {
-  opencl.queue.enqueueWriteBuffer(opencl.screen_write, false, 0, (SCREEN_WIDTH * SCREEN_HEIGHT) * sizeof(cl_float3), &blank_screen_buffer);
-  opencl.queue.enqueueWriteBuffer(opencl.depth_buffer, false, 0, (SCREEN_WIDTH * SCREEN_HEIGHT) * sizeof(cl_float), &blank_depth_buffer);
   opencl.queue.enqueueWriteBuffer(opencl.write_buffer, false, 0, (SCREEN_WIDTH * SCREEN_HEIGHT) * sizeof(cl_uint), &blank_write_buffer);
 }
 
@@ -116,18 +82,21 @@ void CLCopyToSDL(ocl &opencl, screen* screen) {
   );
 }
 
-void CLRegisterLights(ocl &opencl, std::vector<Light> lights){
-  std::vector<cl_light> cl_lights(lights.size());
-  for(int i = 0; i < lights.size(); i++){
-    cl_lights[i] = toClLight(lights[i]);
+void CLRegisterObjects(ocl &opencl, std::vector<Object> objects){
+  std::vector<cl_object> cl_objects(objects.size());
+  for(int i = 0; i < objects.size(); i++){
+    cl_objects[i] = toClObject(objects[i]);
   }
 
-  opencl.queue.enqueueWriteBuffer(opencl.light_buffer, false, 0, lights.size() * sizeof(cl_light), cl_lights.data());
+  opencl.queue.enqueueWriteBuffer(opencl.object_buffer, false, 0, objects.size() * sizeof(cl_object), cl_objects.data());
 }
 
+float timeF = 0;
 void CLRender(ocl &opencl) {
-  opencl.Shader.setArg(0,opencl.write_buffer);
-  opencl.queue.enqueueNDRangeKernel(opencl.Shader,cl::NullRange,cl::NDRange(SCREEN_WIDTH, SCREEN_HEIGHT),cl::NullRange);
+    opencl.Shader.setArg(0,opencl.write_buffer);
+    opencl.Shader.setArg(1, timeF);
+    opencl.queue.enqueueNDRangeKernel(opencl.Shader,cl::NullRange,cl::NDRange(SCREEN_WIDTH, SCREEN_HEIGHT),cl::NullRange);
+    timeF += 1.0f;
 }
 
 void MakeKernels(ocl &opencl, Scene &scene) {
@@ -139,7 +108,7 @@ void MakeKernels(ocl &opencl, Scene &scene) {
   opencl.screen_write = cl::Buffer(opencl.context, CL_MEM_READ_WRITE, sizeof(cl_float3) * SCREEN_WIDTH * SCREEN_HEIGHT);
   opencl.temp_screen = cl::Buffer(opencl.context, CL_MEM_READ_WRITE, sizeof(cl_float3) * SCREEN_WIDTH * SCREEN_HEIGHT);
   opencl.depth_buffer = cl::Buffer(opencl.context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * SCREEN_WIDTH * SCREEN_HEIGHT);
-  opencl.light_buffer = cl::Buffer(opencl.context, CL_MEM_WRITE_ONLY, sizeof(cl_light) * scene.lights.size());
+  opencl.object_buffer = cl::Buffer(opencl.context, CL_MEM_WRITE_ONLY, sizeof(cl_object) * scene.objects.size());
   opencl.write_buffer = cl::Buffer(opencl.context, CL_MEM_WRITE_ONLY, sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT);
 
   opencl.kernel_sin = cl::Buffer(opencl.context, CL_MEM_READ_WRITE, sizeof(cl_float) * DOF_KERNEL_SIZE);

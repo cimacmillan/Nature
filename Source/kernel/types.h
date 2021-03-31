@@ -52,6 +52,5 @@ typedef struct __attribute__ ((packed))
 
 typedef struct __attribute__ ((packed))
 {
-  FLOAT4 pos;
-  FLOAT3 power;
-}cl_light;
+  FLOAT2 pos;
+}cl_object;

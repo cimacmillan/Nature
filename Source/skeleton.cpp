@@ -12,8 +12,6 @@
 #include "scene.h"
 #include "shader_vertex.h"
 #include "rasmath.h"
-#include "shader_pixel.h"
-#include "rasteriser.h"
 #include "shader_post.h"
 
 #include "./opencl/opencl.h"
@@ -92,13 +90,12 @@ void Init() {
   ConstructScene(scene);
   InitOpenCL(opencl, scene);
   PostShaderInit();
-  CLRegisterTextures(opencl, scene.textures);
 }
 
 /*Place your drawing here*/
 void Draw (screen* screen) {
   CLClearScreen(opencl);
-  CLRegisterLights(opencl, scene.lights);
+  CLRegisterObjects(opencl, scene.objects);
   CLRender(opencl);
   CLCopyToSDL(opencl, screen);
 }
@@ -168,14 +165,6 @@ bool Update() {
   if (keystate[SDL_SCANCODE_DOWN]) cameraRot.x -= rotationSpeed;
   if (keystate[SDL_SCANCODE_O]) cameraRot.z -= rotationSpeed;
   if (keystate[SDL_SCANCODE_P]) cameraRot.z += rotationSpeed;
-
-  if (keystate[SDL_SCANCODE_I]) scene.lights[0].position.z += translationSpeed;
-  if (keystate[SDL_SCANCODE_K]) scene.lights[0].position.z -= translationSpeed;
-  if (keystate[SDL_SCANCODE_L]) scene.lights[0].position.x += translationSpeed;
-  if (keystate[SDL_SCANCODE_J]) scene.lights[0].position.x -= translationSpeed;
-  if (keystate[SDL_SCANCODE_M]) scene.lights[0].position.y += translationSpeed;
-  if (keystate[SDL_SCANCODE_U]) scene.lights[0].position.y -= translationSpeed;
-
   return true;
 
 }
