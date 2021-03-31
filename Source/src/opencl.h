@@ -7,7 +7,8 @@
 #include "kernel/types.h"
 #include <vector>
 
-#define SOURCE_RENDERER "./Source/kernel/shader.cl"
+//TODO read kernels from main directory
+#define SOURCE_RENDERER "./Source/src/kernel/shader.cl"
 
 #ifndef DEVICE
 #define DEVICE CL_DEVICE_TYPE_DEFAULT

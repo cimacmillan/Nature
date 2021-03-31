@@ -6,12 +6,13 @@ CLDIR=../
 
 ########
 #   Directories
-S_DIR=Source
-B_DIR=Build
+S_DIR=Source/src
+B_DIR=build
 
 ########
 #   Output
 EXEC=$(B_DIR)/$(FILE)
+TEST_EXEC=$(B_DIR)/$(FILE)_TEST
 
 # default build settings
 CC_OPTS=-c -pipe -Wno-switch -ggdb -g3 -fopenmp -lpthread -Wfatal-errors -lm
@@ -42,16 +43,19 @@ all:Build
 
 ######
 # Get all the source files 4 directories deep
-SOURCES = $(wildcard ${S_DIR}/*.cpp) $(wildcard ${S_DIR}/*/*.cpp) $(wildcard ${S_DIR}/*/*/*.cpp) $(wildcard ${S_DIR}/*/*/*/*.cpp)
+CPPS = $(wildcard ${S_DIR}/*.cpp) $(wildcard ${S_DIR}/*/*.cpp) $(wildcard ${S_DIR}/*/*/*.cpp) $(wildcard ${S_DIR}/*/*/*/*.cpp)
 OLD_HEADERS = $(wildcard ${S_DIR}/*.h) $(wildcard ${S_DIR}/*/*.h) $(wildcard ${S_DIR}/*/*/*.h) $(wildcard ${S_DIR}/*/*/*/*.h)
 HEADERS = $(wildcard ${S_DIR}/*.hpp) $(wildcard ${S_DIR}/*/*.hpp) $(wildcard ${S_DIR}/*/*/*.hpp) $(wildcard ${S_DIR}/*/*/*/*.hpp)
+SOURCES = ${CPPS} Source/Main.cpp
+TEST_SOURCES = ${CPPS} Source/Test.cpp
 
 ########
 #   Object list
-OBJECTS = $(patsubst ${S_DIR}%.cpp,${B_DIR}%.o,$(SOURCES))
+OBJECTS = $(patsubst Source%.cpp,${B_DIR}%.o,$(SOURCES))
+TEST_OBJECTS = $(patsubst Source}%.cpp,${B_DIR}%.o,$(TEST_SOURCES))
 
 
-${B_DIR}/%.o: ${S_DIR}/%.cpp ${OLD_HEADERS} ${HEADERS}
+${B_DIR}/%.o: Source/%.cpp ${OLD_HEADERS} ${HEADERS}
 	@echo ${OLD_HEADERS}
 	@echo build $@ from $<
 	mkdir -p ${dir $@}
@@ -63,6 +67,8 @@ ${B_DIR}/%.o: ${S_DIR}/%.cpp ${OLD_HEADERS} ${HEADERS}
 Build : ${OBJECTS} Makefile
 	$(CC) $(LN_OPTS) -o $(EXEC) $(OBJECTS) $(SDL_LDFLAGS)
 
+BuildTest : ${TEST_OBJECTS} Makefile
+	$(CC) $(LN_OPTS) -o $(TEST_EXEC) $(TEST_OBJECTS) $(SDL_LDFLAGS)
 
 clean:
 	rm -rf $(B_DIR)/*

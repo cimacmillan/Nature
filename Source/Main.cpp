@@ -8,7 +8,7 @@
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
 
-#include "SDLauxiliary.h"
+#include "src/SDLauxiliary.h"
 #include "glm.hpp"
 #include "gtx/transform.hpp"
 #include <stdint.h>
@@ -22,11 +22,10 @@ using glm::vec4;
 using glm::mat4;
 using glm::ivec2;
 
-#include "scene.h"
+#include "src/scene.h"
 
-#include "./opencl.h"
-
-#include "./test/Test.hpp"
+#include "src/opencl.h"
+#include "src/example/Dog.hpp"
 
 using namespace std;
 using glm::vec2;
@@ -87,7 +86,6 @@ int main( int argc, char* argv[] )
       SDL_Renderframe(screen);
     }
 
-  SDL_SaveImage( screen, "screenshot.bmp" );
   KillSDL(screen);
   return 0;
 }
