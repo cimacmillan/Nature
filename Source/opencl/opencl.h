@@ -51,20 +51,6 @@ void initBlankBuffers() {
   }
 }
 
-cl_pixel toClPixel(Pixel pixel) {
-  cl_pixel pix = {
-    pixel.dead,
-    pixel.x,
-    pixel.y,
-    pixel.zinv,
-    (cl_float4){pixel.pos.x, pixel.pos.y, pixel.pos.z, pixel.pos.w},
-    (cl_float4){pixel.normal.x, pixel.normal.y, pixel.normal.z, pixel.normal.w},
-    (cl_float2){pixel.uv.x, pixel.uv.y},
-    (cl_float3){pixel.color.x, pixel.color.y, pixel.color.z}
-  };
-  return pix;
-}
-
 cl_object toClObject(Object object) {
   cl_object cllight = {
     (cl_float2){object.position.x, object.position.y}

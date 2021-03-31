@@ -9,10 +9,20 @@
 #define SCREEN_HEIGHT 480
 
 #include "SDLauxiliary.h"
+#include "glm.hpp"
+#include "gtx/transform.hpp"
+#include <stdint.h>
+#include <vector>
+
+using namespace std;
+using glm::vec2;
+using glm::vec3;
+using glm::mat3;
+using glm::vec4;
+using glm::mat4;
+using glm::ivec2;
+
 #include "scene.h"
-#include "shader_vertex.h"
-#include "rasmath.h"
-#include "shader_post.h"
 
 #include "./opencl/opencl.h"
 
@@ -38,11 +48,8 @@ float current_millis = 0;
 //Scene
 Scene scene;
 
-//Shader
-VertexShader vertex_shader(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 float depth_buffer[SCREEN_WIDTH][SCREEN_HEIGHT];
-Pixel pixel_buffer[SCREEN_WIDTH][SCREEN_HEIGHT];
 vec3 colour_buffer[SCREEN_WIDTH][SCREEN_HEIGHT];
 const vec3 BLACK(0, 0, 0);
 
@@ -81,7 +88,6 @@ int main( int argc, char* argv[] )
     }
 
   SDL_SaveImage( screen, "screenshot.bmp" );
-  PostShaderPost();
   KillSDL(screen);
   return 0;
 }
@@ -89,7 +95,6 @@ int main( int argc, char* argv[] )
 void Init() {
   ConstructScene(scene);
   InitOpenCL(opencl, scene);
-  PostShaderInit();
 }
 
 /*Place your drawing here*/
