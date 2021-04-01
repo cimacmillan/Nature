@@ -1,4 +1,5 @@
-
+#ifndef KERNEL_TYPES
+#define KERNEL_TYPES
 
 #define FOG 1
 #define FOG_START 0.0
@@ -12,6 +13,8 @@
 #define DOF_OFFSET 1
 #define DOF_RANGE 2.0f
 
+#define OBJECT_TYPE_BALL 0
+#define OBJECT_TYPE_LINE 1
 
 #ifdef IN_KERNEL
 #define INT int
@@ -29,6 +32,11 @@
 #define FLOAT4 cl_float4
 #endif
 
+typedef struct __attribute__ ((packed))
+{
+    FLOAT2 pos;
+    FLOAT zoom;
+}cl_camera;
 
 typedef struct __attribute__ ((packed))
 {
@@ -52,5 +60,10 @@ typedef struct __attribute__ ((packed))
 
 typedef struct __attribute__ ((packed))
 {
-  FLOAT2 pos;
+    INT type;
+    FLOAT2 pos;
+    FLOAT2 pos2;
+    FLOAT radius;
 }cl_object;
+
+#endif

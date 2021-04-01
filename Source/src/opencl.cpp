@@ -1,11 +1,17 @@
 #define __CL_ENABLE_EXCEPTIONS
 
+#include <iostream>
 #include <cl.hpp>
 #include <cl_platform.h>
 #include <util.hpp> // OpenCL utility library
 #include <err_code.h>
 #include "kernel/types.h"
 #include <vector>
+#include "config.hpp"
+#include "opencl.hpp"
+#include "scene.hpp"
+#include <string>
+#include "SDLauxiliary.hpp"
 
 //TODO read kernels from main directory
 #define SOURCE_RENDERER "./Source/src/kernel/shader.cl"
@@ -19,32 +25,6 @@ cl_uint blank_write_buffer[SCREEN_WIDTH * SCREEN_HEIGHT];
 cl_float3 blank_screen_buffer[SCREEN_WIDTH * SCREEN_HEIGHT];
 cl_float blank_depth_buffer[SCREEN_WIDTH * SCREEN_HEIGHT];
 
-// std::vector<cl_float3> buffer_read(SCREEN_WIDTH * SCREEN_HEIGHT);
-
-struct ocl {
-
-    cl::Device device;
-    cl::Context context;
-    cl::CommandQueue queue;
-
-    cl::Program renderer;
-
-    cl::Kernel Shader;
-
-    cl::Buffer screen_write;
-    cl::Buffer depth_buffer;
-    cl::Buffer object_buffer;
-    cl::Buffer write_buffer;
-    cl::Buffer temp_screen;
-
-    cl::Buffer kernel_sin;
-    cl::Buffer kernel_regular;
-
-    std::vector<cl::Buffer> texture_buffers;
-
-};
-
-
 void initBlankBuffers() {
   for(int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++) {
     blank_screen_buffer[i] = pattern;
@@ -55,7 +35,10 @@ void initBlankBuffers() {
 
 cl_object toClObject(Object object) {
   cl_object cllight = {
-    (cl_float2){object.position.x, object.position.y}
+    (cl_int){object.type},
+    (cl_float2){object.position.x, object.position.y},
+    (cl_float2){object.pos2.x, object.pos2.y},
+    (cl_float){object.radius}
   };
   return cllight;
 }
@@ -113,28 +96,28 @@ void InitOpenCL(ocl &opencl, Scene &scene){
         opencl.context = cl::Context(opencl.device);
         opencl.queue = cl::CommandQueue(opencl.context);
 
-        string device_name;
+        std::string device_name;
         opencl.device.getInfo(CL_DEVICE_NAME, &device_name);
-        cout << "Device Chosen: " << device_name << endl;
+        std::cout << "Device Chosen: " << device_name << std::endl;
 
         MakeKernels(opencl, scene);
         initBlankBuffers();
 
     }
     catch (cl::Error err) {
-      if (err.err() == CL_BUILD_PROGRAM_FAILURE)
-      {
-        // Get the build log for the first device
-        std::string log = opencl.renderer.getBuildInfo<CL_PROGRAM_BUILD_LOG>(opencl.device);
-        std::cerr << log << std::endl;
-      }
+    //   if (err.err() == CL_BUILD_PROGRAM_FAILURE)
+    //   {
+    //     // Get the build log for the first device
+    //     std::string log = opencl.renderer.getBuildInfo<CL_PROGRAM_BUILD_LOG>(opencl.device);
+    //     std::cerr << log << std::endl;
+    //   }
 
         std::cout << "Exception\n";
         std::cerr
             << "ERROR: "
             << err.what()
             << "("
-            << err_code(err.err())
+            << err.err()
            << ")"
            << std::endl;
     }

@@ -5,10 +5,7 @@
 
 // #include "shader_pixel.h"
 
-#define SCREEN_WIDTH 640
-#define SCREEN_HEIGHT 480
-
-#include "src/SDLauxiliary.h"
+#include "src/SDLauxiliary.hpp"
 #include "glm.hpp"
 #include "gtx/transform.hpp"
 #include <stdint.h>
@@ -22,10 +19,12 @@ using glm::vec4;
 using glm::mat4;
 using glm::ivec2;
 
-#include "src/scene.h"
+#include "src/scene.hpp"
 
-#include "src/opencl.h"
+#include "src/opencl.hpp"
 #include "src/example/Dog.hpp"
+#include "src/config.hpp"
+
 
 using namespace std;
 using glm::vec2;
@@ -58,6 +57,7 @@ vec2 center_translation(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 vec4 cameraPos(0, 0, -3.0, 1.0);
 vec4 cameraRot(0, 0, 0, 0); //Pitch, yaw, roll
 mat4 cameraMatrix;
+
 
 //OpenCL
 
@@ -97,6 +97,7 @@ void Init() {
 
 /*Place your drawing here*/
 void Draw (screen* screen) {
+
   CLClearScreen(opencl);
   CLRegisterObjects(opencl, scene.objects);
   CLRender(opencl);
