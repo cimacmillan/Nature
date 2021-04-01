@@ -14,14 +14,14 @@ typedef unsigned __int64 uint64_t;
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
 
 #include <cstdlib>
 
 namespace util {
 
-inline std::string loadProgram(std::string input)
-{
-    std::ifstream stream(input.c_str());
+inline std::string loadFile(std::string input) {
+   std::ifstream stream(input.c_str());
     if (!stream.is_open()) {
         std::cout << "Cannot open file: " << input << std::endl;
         exit(1);
@@ -30,6 +30,15 @@ inline std::string loadProgram(std::string input)
      return std::string(
         std::istreambuf_iterator<char>(stream),
         (std::istreambuf_iterator<char>()));
+}
+
+inline std::string loadProgram(std::vector<std::string> inputs)
+{
+    std::string program = "";
+    for (int i = 0; i < inputs.size(); i++) {
+        program = program + loadFile(inputs[i]);
+    }
+    return program;
 }
 
 #if 1

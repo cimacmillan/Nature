@@ -49,7 +49,7 @@ void CLCopyToSDL(ocl &opencl, screen* screen);
 
 void CLRegisterObjects(ocl &opencl, std::vector<Object> objects);
 
-void CLRender(ocl &opencl);
+void CLRender(ocl &opencl, cl_camera camera);
 
 void MakeKernels(ocl &opencl, Scene &scene);
 

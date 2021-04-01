@@ -36,7 +36,7 @@ using glm::mat4;
 
 #define FULLSCREEN_MODE false
 #define TRANSLATION_SPEED 1
-#define ROTATION_SPEED 1
+#define ZOOM_SPEED 1
 
 #define FACE_CULLING 1
 
@@ -51,12 +51,10 @@ float depth_buffer[SCREEN_WIDTH][SCREEN_HEIGHT];
 vec3 colour_buffer[SCREEN_WIDTH][SCREEN_HEIGHT];
 const vec3 BLACK(0, 0, 0);
 
-//Transformation
-float f = ((float)SCREEN_HEIGHT / 2);
-vec2 center_translation(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-vec4 cameraPos(0, 0, -3.0, 1.0);
-vec4 cameraRot(0, 0, 0, 0); //Pitch, yaw, roll
-mat4 cameraMatrix;
+cl_camera camera = {
+    (cl_float2){0.0f, 0.0f},
+    (cl_float){1.0f}
+};
 
 
 //OpenCL
@@ -100,7 +98,7 @@ void Draw (screen* screen) {
 
   CLClearScreen(opencl);
   CLRegisterObjects(opencl, scene.objects);
-  CLRender(opencl);
+  CLRender(opencl, camera);
   CLCopyToSDL(opencl, screen);
 }
 
@@ -131,45 +129,22 @@ bool Update() {
 
   float dampening = (sub_fps);
   float translationSpeed = TRANSLATION_SPEED / dampening;
-  float rotationSpeed = ROTATION_SPEED / dampening;
+  float zoomSpeed = ZOOM_SPEED / dampening;
 
   const Uint8* keystate = SDL_GetKeyboardState(NULL);
 
-  if (keystate[SDL_SCANCODE_ESCAPE]){
-    return false;
-  }
+    if (keystate[SDL_SCANCODE_ESCAPE]){
+        return false;
+    }
 
-  mat4 pitch_matrix = glm::rotate(cameraRot.x, vec3(1.f, 0.f, 0.f));
-  mat4 yaw_matrix = glm::rotate(cameraRot.y, vec3(0.f, 1.f, 0.f));
-  mat4 move_matrix = yaw_matrix * pitch_matrix;
+    if (keystate[SDL_SCANCODE_W]) camera.pos.y -= translationSpeed * camera.zoom;
+    if (keystate[SDL_SCANCODE_S]) camera.pos.y += translationSpeed * camera.zoom;
+    if (keystate[SDL_SCANCODE_D]) camera.pos.x += translationSpeed * camera.zoom;
+    if (keystate[SDL_SCANCODE_A]) camera.pos.x -= translationSpeed * camera.zoom;
+    if (keystate[SDL_SCANCODE_E]) camera.zoom = camera.zoom * (1.0f + zoomSpeed);
+    if (keystate[SDL_SCANCODE_Q]) camera.zoom = camera.zoom * (1.0f - zoomSpeed);
 
-  vec4 forward = move_matrix * vec4(0, 0, translationSpeed, 0);
-  vec4 back = move_matrix * vec4(0, 0, -translationSpeed, 0);
-  vec4 left = move_matrix * vec4(-translationSpeed, 0, 0, 0);
-  vec4 right = move_matrix * vec4(translationSpeed, 0, 0, 0);
-  vec4 top = move_matrix * vec4(0, -translationSpeed, 0, 0);
-  vec4 bottom = move_matrix * vec4(0, translationSpeed, 0, 0);
-
-
-  // vec4 rot_left =
-  // vec4 rot_right = vec4(cos(cameraRot.y), 0, sin(cameraRot.y)) * rotation_speed;
-  vec4 rot_up = vec4(cos(cameraRot.y), 0, sin(cameraRot.y), 0) * rotationSpeed;
-  // vec4 rot_down = vec4(cos(cameraRot.y), 0, sin(cameraRot.y), 0) * -rotationSpeed;
-
-  if (keystate[SDL_SCANCODE_W]) cameraPos += forward;
-  if (keystate[SDL_SCANCODE_S]) cameraPos += back;
-  if (keystate[SDL_SCANCODE_D]) cameraPos += right;
-  if (keystate[SDL_SCANCODE_A]) cameraPos += left;
-  if (keystate[SDL_SCANCODE_SPACE]) cameraPos += top;
-  if (keystate[SDL_SCANCODE_LSHIFT]) cameraPos += bottom;
-
-  if (keystate[SDL_SCANCODE_LEFT]) cameraRot.y -= rotationSpeed;
-  if (keystate[SDL_SCANCODE_RIGHT]) cameraRot.y += rotationSpeed;
-  if (keystate[SDL_SCANCODE_UP]) cameraRot.x += rotationSpeed;
-  if (keystate[SDL_SCANCODE_DOWN]) cameraRot.x -= rotationSpeed;
-  if (keystate[SDL_SCANCODE_O]) cameraRot.z -= rotationSpeed;
-  if (keystate[SDL_SCANCODE_P]) cameraRot.z += rotationSpeed;
-  return true;
+    return true;
 
 }
 

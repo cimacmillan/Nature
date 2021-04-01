@@ -40,6 +40,11 @@ typedef struct __attribute__ ((packed))
 
 typedef struct __attribute__ ((packed))
 {
+    FLOAT zoom;
+}cl_test;
+
+typedef struct __attribute__ ((packed))
+{
     INT a;
     FLOAT3 b;
 }st_foo;

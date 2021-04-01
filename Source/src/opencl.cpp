@@ -14,6 +14,8 @@
 #include "SDLauxiliary.hpp"
 
 //TODO read kernels from main directory
+#define SOURCE_TYPE_HEADER "./Source/src/kernel/kernel_types.h"
+#define SOURCE_TYPES "./Source/src/kernel/types.h"
 #define SOURCE_RENDERER "./Source/src/kernel/shader.cl"
 
 #ifndef DEVICE
@@ -63,15 +65,17 @@ void CLRegisterObjects(ocl &opencl, std::vector<Object> objects){
 }
 
 float timeF = 0;
-void CLRender(ocl &opencl) {
+void CLRender(ocl &opencl, cl_camera camera) {
     opencl.Shader.setArg(0,opencl.write_buffer);
     opencl.Shader.setArg(1, timeF);
+    opencl.Shader.setArg(2, camera);
     opencl.queue.enqueueNDRangeKernel(opencl.Shader,cl::NullRange,cl::NDRange(SCREEN_WIDTH, SCREEN_HEIGHT),cl::NullRange);
     timeF += 1.0f;
 }
 
 void MakeKernels(ocl &opencl, Scene &scene) {
-  opencl.renderer = cl::Program(opencl.context, util::loadProgram(SOURCE_RENDERER));
+    std::vector<std::string> sources{SOURCE_TYPE_HEADER, SOURCE_TYPES, SOURCE_RENDERER};
+  opencl.renderer = cl::Program(opencl.context, util::loadProgram(sources));
   opencl.renderer.build();
 
   opencl.Shader = cl::Kernel(opencl.renderer,"Shader");
