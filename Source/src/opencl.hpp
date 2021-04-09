@@ -25,7 +25,9 @@ struct ocl {
 
     cl::Program renderer;
 
-    cl::Kernel Shader;
+    cl::Kernel PixelShader;
+    cl::Kernel PointShader;
+    cl::Kernel PointResolver;
 
     cl::Buffer screen_write;
     cl::Buffer depth_buffer;
@@ -41,15 +43,15 @@ struct ocl {
 };
 
 
-cl_object toClObject(Object object);
+cl_point toClObject(Point object);
 
 void CLClearScreen(ocl &opencl);
 
 void CLCopyToSDL(ocl &opencl, screen* screen);
 
-void CLRegisterObjects(ocl &opencl, std::vector<Object> objects);
+void CLRegisterObjects(ocl &opencl, std::vector<Point> objects);
 
-void CLRender(ocl &opencl, cl_camera camera);
+void CLRender(ocl &opencl, cl_camera camera, int pointsSize);
 
 void MakeKernels(ocl &opencl, Scene &scene);
 

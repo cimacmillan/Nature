@@ -65,10 +65,7 @@ typedef struct __attribute__ ((packed))
 
 typedef struct __attribute__ ((packed))
 {
-    INT type;
     FLOAT2 pos;
-    FLOAT2 pos2;
-    FLOAT radius;
-}cl_object;
+}cl_point;
 
 #endif

@@ -8,7 +8,7 @@ void PutPixelSDL(__global uint * write_buffer, int index, float3 colour)
   write_buffer[index] = (128<<24) + (r<<16) + (g<<8) + b;
 }
 
-__kernel void Shader(__global uint * write_buffer, float time, cl_camera camera){
+__kernel void PixelShader(__global uint * write_buffer, float time, cl_camera camera) {
     int x_pos = get_global_id(0);
     int y_pos = get_global_id(1);
     int x_size = get_global_size(0);
@@ -33,3 +33,44 @@ __kernel void Shader(__global uint * write_buffer, float time, cl_camera camera)
     PutPixelSDL(write_buffer, index, colour);
 }
 
+#define POINT_RADIUS 5.0f
+__kernel void PointShader(__global uint * write_buffer, cl_camera camera, int screenWidth, int screenHeight, __global cl_point * point_buffer) {
+    int pointId = get_global_id(0);
+    int pointSize = get_global_size(0);
+    float2 screen = (float2)(screenWidth, screenHeight);
+    
+    for (int i = 0; i < pointSize; i++) {
+        cl_point point = point_buffer[i];
+
+        float2 transformedPoint = (point.pos - camera.pos) * camera.zoom;
+        float2 projectedPoint = transformedPoint * screen + (screen * 0.5f);
+        int screenX = (int)projectedPoint.x;
+        int screenY = (int)projectedPoint.y;
+
+        int radius = (int)(POINT_RADIUS * camera.zoom);
+
+        int x1 = screenX - radius;
+        int x2 = screenX + radius;
+
+        int y1 = screenY - radius;
+        int y2 = screenY + radius;
+
+        x1 = min(max(x1, 0), screenWidth - 1);
+        x2 = min(max(x2, 0), screenWidth - 1);
+        y1 = min(max(y1, 0), screenHeight - 1);
+        y2 = min(max(y2, 0), screenHeight - 1);
+
+        printf("%d %d %d %d\n", x1, x2, y1, y2);
+        for (int x = x1; x < x2; x++) {
+            for (int y = y1; y < y2; y++) {
+                int index = x + (y * screenWidth);
+                float3 colour = (float3)(1.0f, 1.0f, 0.0f);
+                PutPixelSDL(write_buffer, index, colour);
+            }
+        }
+    }  
+} 
+
+__kernel void PointResolver(__global uint * write_buffer, cl_camera camera) {
+
+} 

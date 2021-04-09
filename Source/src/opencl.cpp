@@ -35,12 +35,9 @@ void initBlankBuffers() {
   }
 }
 
-cl_object toClObject(Object object) {
-  cl_object cllight = {
-    (cl_int){object.type},
-    (cl_float2){object.position.x, object.position.y},
-    (cl_float2){object.pos2.x, object.pos2.y},
-    (cl_float){object.radius}
+cl_point toClObject(Point object) {
+  cl_point cllight = {
+    (cl_float2){object.position.x, object.position.y}
   };
   return cllight;
 }
@@ -55,39 +52,43 @@ void CLCopyToSDL(ocl &opencl, screen* screen) {
   );
 }
 
-void CLRegisterObjects(ocl &opencl, std::vector<Object> objects){
-  std::vector<cl_object> cl_objects(objects.size());
-  for(int i = 0; i < objects.size(); i++){
-    cl_objects[i] = toClObject(objects[i]);
+void CLRegisterObjects(ocl &opencl, std::vector<Point> points){
+  std::vector<cl_point> cl_objects(points.size());
+  for(int i = 0; i < points.size(); i++){
+    cl_objects[i] = toClObject(points[i]);
   }
 
-  opencl.queue.enqueueWriteBuffer(opencl.object_buffer, false, 0, objects.size() * sizeof(cl_object), cl_objects.data());
+  opencl.queue.enqueueWriteBuffer(opencl.object_buffer, false, 0, points.size() * sizeof(cl_point), cl_objects.data());
 }
 
 float timeF = 0;
-void CLRender(ocl &opencl, cl_camera camera) {
-    opencl.Shader.setArg(0,opencl.write_buffer);
-    opencl.Shader.setArg(1, timeF);
-    opencl.Shader.setArg(2, camera);
-    opencl.queue.enqueueNDRangeKernel(opencl.Shader,cl::NullRange,cl::NDRange(SCREEN_WIDTH, SCREEN_HEIGHT),cl::NullRange);
+void CLRender(ocl &opencl, cl_camera camera, int pointsSize) {
+    opencl.PointShader.setArg(0,opencl.write_buffer);
+    opencl.PointShader.setArg(1, camera);
+    opencl.PointShader.setArg(2, SCREEN_WIDTH);
+    opencl.PointShader.setArg(3, SCREEN_HEIGHT);
+    opencl.PointShader.setArg(4, opencl.object_buffer);
+    opencl.queue.enqueueNDRangeKernel(opencl.PointShader,cl::NullRange,cl::NDRange(pointsSize),cl::NullRange);
     timeF += 1.0f;
 }
 
 void MakeKernels(ocl &opencl, Scene &scene) {
     std::vector<std::string> sources{SOURCE_TYPE_HEADER, SOURCE_TYPES, SOURCE_RENDERER};
-  opencl.renderer = cl::Program(opencl.context, util::loadProgram(sources));
-  opencl.renderer.build();
+    opencl.renderer = cl::Program(opencl.context, util::loadProgram(sources));
+    opencl.renderer.build();
 
-  opencl.Shader = cl::Kernel(opencl.renderer,"Shader");
+    opencl.PixelShader = cl::Kernel(opencl.renderer,"PixelShader");
+    opencl.PointShader = cl::Kernel(opencl.renderer,"PointShader");
+    opencl.PointResolver = cl::Kernel(opencl.renderer, "PointResolver");
 
-  opencl.screen_write = cl::Buffer(opencl.context, CL_MEM_READ_WRITE, sizeof(cl_float3) * SCREEN_WIDTH * SCREEN_HEIGHT);
-  opencl.temp_screen = cl::Buffer(opencl.context, CL_MEM_READ_WRITE, sizeof(cl_float3) * SCREEN_WIDTH * SCREEN_HEIGHT);
-  opencl.depth_buffer = cl::Buffer(opencl.context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * SCREEN_WIDTH * SCREEN_HEIGHT);
-  opencl.object_buffer = cl::Buffer(opencl.context, CL_MEM_WRITE_ONLY, sizeof(cl_object) * scene.objects.size());
-  opencl.write_buffer = cl::Buffer(opencl.context, CL_MEM_WRITE_ONLY, sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT);
+    opencl.screen_write = cl::Buffer(opencl.context, CL_MEM_READ_WRITE, sizeof(cl_float3) * SCREEN_WIDTH * SCREEN_HEIGHT);
+    opencl.temp_screen = cl::Buffer(opencl.context, CL_MEM_READ_WRITE, sizeof(cl_float3) * SCREEN_WIDTH * SCREEN_HEIGHT);
+    opencl.depth_buffer = cl::Buffer(opencl.context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * SCREEN_WIDTH * SCREEN_HEIGHT);
+    opencl.object_buffer = cl::Buffer(opencl.context, CL_MEM_WRITE_ONLY, sizeof(cl_point) * scene.points.size());
+    opencl.write_buffer = cl::Buffer(opencl.context, CL_MEM_WRITE_ONLY, sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT);
 
-  opencl.kernel_sin = cl::Buffer(opencl.context, CL_MEM_READ_WRITE, sizeof(cl_float) * DOF_KERNEL_SIZE);
-  opencl.kernel_regular = cl::Buffer(opencl.context, CL_MEM_READ_WRITE, sizeof(cl_float) * DOF_KERNEL_SIZE);
+    opencl.kernel_sin = cl::Buffer(opencl.context, CL_MEM_READ_WRITE, sizeof(cl_float) * DOF_KERNEL_SIZE);
+    opencl.kernel_regular = cl::Buffer(opencl.context, CL_MEM_READ_WRITE, sizeof(cl_float) * DOF_KERNEL_SIZE);
 
 }
 

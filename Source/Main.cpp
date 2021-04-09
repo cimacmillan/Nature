@@ -97,8 +97,8 @@ void Init() {
 void Draw (screen* screen) {
 
   CLClearScreen(opencl);
-  CLRegisterObjects(opencl, scene.objects);
-  CLRender(opencl, camera);
+  CLRegisterObjects(opencl, scene.points);
+  CLRender(opencl, camera, scene.points.size());
   CLCopyToSDL(opencl, screen);
 }
 
