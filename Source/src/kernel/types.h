@@ -66,6 +66,7 @@ typedef struct __attribute__ ((packed))
 typedef struct __attribute__ ((packed))
 {
     FLOAT2 pos;
+    FLOAT2 vel;
 }cl_point;
 
 #endif

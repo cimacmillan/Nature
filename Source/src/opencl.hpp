@@ -32,6 +32,7 @@ struct ocl {
     cl::Buffer screen_write;
     cl::Buffer depth_buffer;
     cl::Buffer object_buffer;
+    cl::Buffer object_swap_buffer;
     cl::Buffer write_buffer;
     cl::Buffer temp_screen;
 
@@ -42,14 +43,11 @@ struct ocl {
 
 };
 
-
-cl_point toClObject(Point object);
-
 void CLClearScreen(ocl &opencl);
 
 void CLCopyToSDL(ocl &opencl, screen* screen);
 
-void CLRegisterObjects(ocl &opencl, std::vector<Point> objects);
+void CLRegisterObjects(ocl &opencl, std::vector<cl_point> objects);
 
 void CLRender(ocl &opencl, cl_camera camera, int pointsSize);
 

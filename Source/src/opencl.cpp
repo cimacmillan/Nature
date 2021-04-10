@@ -35,13 +35,6 @@ void initBlankBuffers() {
   }
 }
 
-cl_point toClObject(Point object) {
-  cl_point cllight = {
-    (cl_float2){object.position.x, object.position.y}
-  };
-  return cllight;
-}
-
 void CLClearScreen(ocl &opencl) {
   opencl.queue.enqueueWriteBuffer(opencl.write_buffer, false, 0, (SCREEN_WIDTH * SCREEN_HEIGHT) * sizeof(cl_uint), &blank_write_buffer);
 }
@@ -52,13 +45,8 @@ void CLCopyToSDL(ocl &opencl, screen* screen) {
   );
 }
 
-void CLRegisterObjects(ocl &opencl, std::vector<Point> points){
-  std::vector<cl_point> cl_objects(points.size());
-  for(int i = 0; i < points.size(); i++){
-    cl_objects[i] = toClObject(points[i]);
-  }
-
-  opencl.queue.enqueueWriteBuffer(opencl.object_buffer, false, 0, points.size() * sizeof(cl_point), cl_objects.data());
+void CLRegisterObjects(ocl &opencl, std::vector<cl_point> points){
+  opencl.queue.enqueueWriteBuffer(opencl.object_buffer, false, 0, points.size() * sizeof(cl_point), points.data());
 }
 
 float timeF = 0;
@@ -85,6 +73,8 @@ void MakeKernels(ocl &opencl, Scene &scene) {
     opencl.temp_screen = cl::Buffer(opencl.context, CL_MEM_READ_WRITE, sizeof(cl_float3) * SCREEN_WIDTH * SCREEN_HEIGHT);
     opencl.depth_buffer = cl::Buffer(opencl.context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * SCREEN_WIDTH * SCREEN_HEIGHT);
     opencl.object_buffer = cl::Buffer(opencl.context, CL_MEM_WRITE_ONLY, sizeof(cl_point) * scene.points.size());
+    opencl.object_swap_buffer = cl::Buffer(opencl.context, CL_MEM_WRITE_ONLY, sizeof(cl_point) * scene.points.size());
+
     opencl.write_buffer = cl::Buffer(opencl.context, CL_MEM_WRITE_ONLY, sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT);
 
     opencl.kernel_sin = cl::Buffer(opencl.context, CL_MEM_READ_WRITE, sizeof(cl_float) * DOF_KERNEL_SIZE);

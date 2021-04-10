@@ -13,8 +13,10 @@ float randomFloatRange(float a, float b) {
 
 void ConstructScene(Scene &scene) {
     for (int x = 0; x < 1000; x ++) {
-        scene.points.push_back(Point(
-            vec2(randomFloatRange(-1, 1), randomFloatRange(-1, 1))
-        ));
+        cl_point cllight = {
+            (cl_float2){randomFloatRange(-1, 1), randomFloatRange(-1, 1)},
+            (cl_float2){randomFloatRange(-0.01, 0.01), randomFloatRange(-0.01, 0.01)},
+        };
+        scene.points.push_back(cllight);
     }
 }

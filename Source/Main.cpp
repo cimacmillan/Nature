@@ -89,17 +89,16 @@ int main( int argc, char* argv[] )
 }
 
 void Init() {
-  ConstructScene(scene);
-  InitOpenCL(opencl, scene);
+    ConstructScene(scene);
+    InitOpenCL(opencl, scene);
+    CLRegisterObjects(opencl, scene.points);
 }
 
 /*Place your drawing here*/
 void Draw (screen* screen) {
-
-  CLClearScreen(opencl);
-  CLRegisterObjects(opencl, scene.points);
-  CLRender(opencl, camera, scene.points.size());
-  CLCopyToSDL(opencl, screen);
+    CLClearScreen(opencl);
+    CLRender(opencl, camera, scene.points.size());
+    CLCopyToSDL(opencl, screen);
 }
 
 /*Place updates of parameters here*/
