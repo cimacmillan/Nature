@@ -50,14 +50,29 @@ void CLRegisterObjects(ocl &opencl, std::vector<cl_point> points){
 }
 
 float timeF = 0;
+int frame = 0;
 void CLRender(ocl &opencl, cl_camera camera, int pointsSize) {
+
+    cl::Buffer readPointBuffer = opencl.object_buffer;
+    cl::Buffer writePointBuffer = opencl.object_swap_buffer;
+
+    if (frame % 2 == 1) {
+        readPointBuffer = opencl.object_swap_buffer;
+        writePointBuffer = opencl.object_buffer;
+    }
+
+    opencl.PointResolver.setArg(0, readPointBuffer);
+    opencl.PointResolver.setArg(1, writePointBuffer);
+    opencl.queue.enqueueNDRangeKernel(opencl.PointResolver,cl::NullRange,cl::NDRange(pointsSize),cl::NullRange);
+
     opencl.PointShader.setArg(0,opencl.write_buffer);
     opencl.PointShader.setArg(1, camera);
     opencl.PointShader.setArg(2, SCREEN_WIDTH);
     opencl.PointShader.setArg(3, SCREEN_HEIGHT);
-    opencl.PointShader.setArg(4, opencl.object_buffer);
+    opencl.PointShader.setArg(4, writePointBuffer);
     opencl.queue.enqueueNDRangeKernel(opencl.PointShader,cl::NullRange,cl::NDRange(pointsSize),cl::NullRange);
     timeF += 1.0f;
+    frame += 1;
 }
 
 void MakeKernels(ocl &opencl, Scene &scene) {

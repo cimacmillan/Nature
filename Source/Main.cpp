@@ -136,10 +136,10 @@ bool Update() {
         return false;
     }
 
-    if (keystate[SDL_SCANCODE_W]) camera.pos.y -= translationSpeed * camera.zoom;
-    if (keystate[SDL_SCANCODE_S]) camera.pos.y += translationSpeed * camera.zoom;
-    if (keystate[SDL_SCANCODE_D]) camera.pos.x += translationSpeed * camera.zoom;
-    if (keystate[SDL_SCANCODE_A]) camera.pos.x -= translationSpeed * camera.zoom;
+    if (keystate[SDL_SCANCODE_W]) camera.pos.y -= translationSpeed / camera.zoom;
+    if (keystate[SDL_SCANCODE_S]) camera.pos.y += translationSpeed / camera.zoom;
+    if (keystate[SDL_SCANCODE_D]) camera.pos.x += translationSpeed / camera.zoom;
+    if (keystate[SDL_SCANCODE_A]) camera.pos.x -= translationSpeed / camera.zoom;
     if (keystate[SDL_SCANCODE_E]) camera.zoom = camera.zoom * (1.0f + zoomSpeed);
     if (keystate[SDL_SCANCODE_Q]) camera.zoom = camera.zoom * (1.0f - zoomSpeed);
 

@@ -39,37 +39,60 @@ __kernel void PointShader(__global uint * write_buffer, cl_camera camera, int sc
     int pointSize = get_global_size(0);
     float2 screen = (float2)(screenWidth, screenHeight);
     
-    for (int i = 0; i < pointSize; i++) {
-        cl_point point = point_buffer[i];
+    cl_point point = point_buffer[pointId];
 
-        float2 transformedPoint = (point.pos - camera.pos) * camera.zoom;
-        float2 projectedPoint = transformedPoint * (screen * 0.5f) + (screen * 0.5f);
-        int screenX = (int)projectedPoint.x;
-        int screenY = (int)projectedPoint.y;
+    float2 transformedPoint = (point.pos - camera.pos) * camera.zoom;
+    float2 projectedPoint = transformedPoint * (screen * 0.5f) + (screen * 0.5f);
+    int screenX = (int)projectedPoint.x;
+    int screenY = (int)projectedPoint.y;
 
-        int radius = max((int)(POINT_RADIUS * camera.zoom), 1);
+    int radius = max((int)(POINT_RADIUS * camera.zoom), 1);
 
-        int x1 = screenX - radius;
-        int x2 = screenX + radius;
+    int x1 = screenX - radius;
+    int x2 = screenX + radius;
 
-        int y1 = screenY - radius;
-        int y2 = screenY + radius;
+    int y1 = screenY - radius;
+    int y2 = screenY + radius;
 
-        x1 = min(max(x1, 0), screenWidth - 1);
-        x2 = min(max(x2, 0), screenWidth - 1);
-        y1 = min(max(y1, 0), screenHeight - 1);
-        y2 = min(max(y2, 0), screenHeight - 1);
+    x1 = min(max(x1, 0), screenWidth - 1);
+    x2 = min(max(x2, 0), screenWidth - 1);
+    y1 = min(max(y1, 0), screenHeight - 1);
+    y2 = min(max(y2, 0), screenHeight - 1);
 
-        for (int x = x1; x < x2; x++) {
-            for (int y = y1; y < y2; y++) {
-                int index = x + (y * screenWidth);
-                float3 colour = (float3)(1.0f, 1.0f, 1.0f);
-                PutPixelSDL(write_buffer, index, colour);
-            }
+    for (int x = x1; x < x2; x++) {
+        for (int y = y1; y < y2; y++) {
+            int index = x + (y * screenWidth);
+            float3 colour = (float3)(1.0f, 1.0f, 1.0f);
+            PutPixelSDL(write_buffer, index, colour);
         }
-    }  
+    }
 } 
 
-__kernel void PointResolver(__global uint * write_buffer, cl_camera camera) {
+__kernel void PointResolver(__global cl_point * point_buffer, __global cl_point * point_destination_buffer) {
+    int pointId = get_global_id(0);
+    int pointSize = get_global_size(0);
 
+    float2 pos = point_buffer[pointId].pos;
+    float2 vel = point_buffer[pointId].vel;
+
+    for (int i = 0; i < pointSize; i++) {
+        if (pointId == i) {
+            continue;
+        }
+        
+        float2 destPos = point_buffer[i].pos;
+        float2 destVel = point_buffer[i].vel;
+
+        float dis = distance(pos, destPos);
+        float2 normal = normalize(destPos - pos);
+
+        float force = (1.0f / (dis)) * 0.000001f;
+        vel = vel + normal * force;
+    }
+
+    cl_point destination;
+    destination.pos = pos + vel * 0.1f;
+    destination.vel = vel;
+
+    point_destination_buffer[pointId] = destination;
 } 

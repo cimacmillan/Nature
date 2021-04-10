@@ -15,7 +15,17 @@ void ConstructScene(Scene &scene) {
     for (int x = 0; x < 1000; x ++) {
         cl_point cllight = {
             (cl_float2){randomFloatRange(-1, 1), randomFloatRange(-1, 1)},
-            (cl_float2){randomFloatRange(-0.01, 0.01), randomFloatRange(-0.01, 0.01)},
+            (cl_float2){randomFloatRange(-0.1, 0.1), randomFloatRange(-0.1, 0.1)},
+            // 0, 0
+        };
+        scene.points.push_back(cllight);
+    }
+
+     for (int x = 0; x < 1000; x ++) {
+        cl_point cllight = {
+            (cl_float2){randomFloatRange(10, 11), randomFloatRange(10, 11)},
+            (cl_float2){randomFloatRange(-0.1, 0.1), randomFloatRange(-0.1, 0.1)},
+            // 0, 0
         };
         scene.points.push_back(cllight);
     }
