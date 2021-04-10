@@ -8,27 +8,27 @@ void PutPixelSDL(__global uint * write_buffer, int index, float3 colour)
   write_buffer[index] = (128<<24) + (r<<16) + (g<<8) + b;
 }
 
-__kernel void PixelShader(__global uint * write_buffer, float time, cl_camera camera) {
+#define TRACER_MAG 0.f
+__kernel void PixelShader(__global uint * write_buffer) {
     int x_pos = get_global_id(0);
     int y_pos = get_global_id(1);
     int x_size = get_global_size(0);
     int y_size = get_global_size(1);
     int index = x_pos + (y_pos * x_size);
-    float aspectRatio = (float)x_size / (float) y_size;
-    float x_world_pos = ((((float)x_pos / (float)x_size) * 2.0f - 1.0f) * camera.zoom + camera.pos.x);
-    float y_world_pos = (((((float)y_pos / (float)y_size) * 2.0f - 1.0f) / aspectRatio) * camera.zoom + camera.pos.y);
 
-// TODO below should be removed
-    if (x_world_pos < 0) {
-        x_world_pos = -x_world_pos;
-    }
+    uint existing_colour = write_buffer[index];
 
-     if (y_world_pos < 0) {
-        y_world_pos = -y_world_pos;
-    }
-    float red = fmod(x_world_pos, 1.0f) / 1.0f;
-    float green = fmod(y_world_pos, 1.0f) / 1.0f;
-    float3 colour = (float3)(red, green, 0.0f);
+    uint r = (existing_colour >> 16) & 0xFF;
+    uint g = (existing_colour >> 8) & 0xFF;
+    uint b = (existing_colour) & 0xFF;
+
+    float redFloat = ((float)r) / (255.f);
+    float greenFloat = ((float)g) / (255.f);
+    float blueFloat = ((float)b) / (255.f);
+
+    float3 background = (float3)(0.0f, 0.0f, 0.0f);
+    float3 prevColour = (float3)(redFloat, greenFloat, blueFloat);
+    float3 colour = (prevColour * TRACER_MAG) + (background * (1.0f - TRACER_MAG));
 
     PutPixelSDL(write_buffer, index, colour);
 }
@@ -68,12 +68,17 @@ __kernel void PointShader(__global uint * write_buffer, cl_camera camera, int sc
     }
 } 
 
+#define DISTANCE_MIN 0.5f
+#define DISTANCE_MAX 25.0f
+
 __kernel void PointResolver(__global cl_point * point_buffer, __global cl_point * point_destination_buffer) {
     int pointId = get_global_id(0);
     int pointSize = get_global_size(0);
 
     float2 pos = point_buffer[pointId].pos;
     float2 vel = point_buffer[pointId].vel;
+    float2 force = (float2)(0.0f, 0.0f);
+    float mass = 1.0f;
 
     for (int i = 0; i < pointSize; i++) {
         if (pointId == i) {
@@ -83,16 +88,17 @@ __kernel void PointResolver(__global cl_point * point_buffer, __global cl_point 
         float2 destPos = point_buffer[i].pos;
         float2 destVel = point_buffer[i].vel;
 
-        float dis = distance(pos, destPos);
+        float dis = max(min(distance(pos, destPos), DISTANCE_MAX), DISTANCE_MIN);
         float2 normal = normalize(destPos - pos);
 
-        float force = (1.0f / (dis)) * 0.000001f;
-        vel = vel + normal * force;
+        float gravity = (1.0f / (dis * dis)) * 0.000001f;
+        force += (gravity * normal);
     }
 
-    cl_point destination;
-    destination.pos = pos + vel * 0.1f;
-    destination.vel = vel;
+    float2 acc = force / mass;
 
+    cl_point destination;
+    destination.vel = vel + acc;
+    destination.pos = pos + vel;
     point_destination_buffer[pointId] = destination;
 } 

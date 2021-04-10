@@ -36,7 +36,9 @@ void initBlankBuffers() {
 }
 
 void CLClearScreen(ocl &opencl) {
-  opencl.queue.enqueueWriteBuffer(opencl.write_buffer, false, 0, (SCREEN_WIDTH * SCREEN_HEIGHT) * sizeof(cl_uint), &blank_write_buffer);
+    opencl.PixelShader.setArg(0, opencl.write_buffer);
+    opencl.queue.enqueueNDRangeKernel(opencl.PixelShader,cl::NullRange,cl::NDRange(SCREEN_WIDTH, SCREEN_HEIGHT),cl::NullRange);
+//   opencl.queue.enqueueWriteBuffer(opencl.write_buffer, false, 0, (SCREEN_WIDTH * SCREEN_HEIGHT) * sizeof(cl_uint), &blank_write_buffer);
 }
 
 void CLCopyToSDL(ocl &opencl, screen* screen) {
