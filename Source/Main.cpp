@@ -75,23 +75,22 @@ int main( int argc, char* argv[] )
     Dog* dog = new Dog();
     dog->woof();
 
-  screen *screen = InitializeSDL( SCREEN_WIDTH, SCREEN_HEIGHT, FULLSCREEN_MODE );
+    screen *screen = InitializeSDL( SCREEN_WIDTH, SCREEN_HEIGHT, FULLSCREEN_MODE );
 
-  Init();
-  while ( Update())
-    {
-      Draw(screen);
-      SDL_Renderframe(screen);
+    Init();
+    while ( Update()) {
+        Draw(screen);
+        SDL_Renderframe(screen);
     }
 
-  KillSDL(screen);
-  return 0;
+    KillSDL(screen);
+    return 0;
 }
 
 void Init() {
     ConstructScene(scene);
     InitOpenCL(opencl, scene);
-    CLRegisterObjects(opencl, scene.points);
+    CLRegisterObjects(opencl, &scene);
 }
 
 /*Place your drawing here*/

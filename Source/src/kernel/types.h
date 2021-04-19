@@ -69,4 +69,11 @@ typedef struct __attribute__ ((packed))
     FLOAT2 vel;
 }cl_point;
 
+typedef struct __attribute__ ((packed))
+{
+    INT pointA;
+    INT pointB;
+    FLOAT target;
+}cl_joint;
+
 #endif

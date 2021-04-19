@@ -14,6 +14,7 @@ using std::vector;
 
 struct Scene {
   vector<cl_point> points;
+  vector<cl_joint> joints;
 };
 
 void ConstructScene(Scene &scene);

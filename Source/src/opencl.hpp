@@ -47,7 +47,7 @@ void CLClearScreen(ocl &opencl);
 
 void CLCopyToSDL(ocl &opencl, screen* screen);
 
-void CLRegisterObjects(ocl &opencl, std::vector<cl_point> objects);
+void CLRegisterObjects(ocl &opencl, Scene* scene);
 
 void CLRender(ocl &opencl, cl_camera camera, int pointsSize);
 

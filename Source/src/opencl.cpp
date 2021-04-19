@@ -47,8 +47,8 @@ void CLCopyToSDL(ocl &opencl, screen* screen) {
   );
 }
 
-void CLRegisterObjects(ocl &opencl, std::vector<cl_point> points){
-  opencl.queue.enqueueWriteBuffer(opencl.object_buffer, false, 0, points.size() * sizeof(cl_point), points.data());
+void CLRegisterObjects(ocl &opencl, Scene* scene){
+  opencl.queue.enqueueWriteBuffer(opencl.object_buffer, false, 0, scene->points.size() * sizeof(cl_point), scene->points.data());
 }
 
 float timeF = 0;
