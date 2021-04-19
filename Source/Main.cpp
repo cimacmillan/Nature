@@ -96,7 +96,7 @@ void Init() {
 /*Place your drawing here*/
 void Draw (screen* screen) {
     CLClearScreen(opencl);
-    CLRender(opencl, camera, scene.points.size());
+    CLRender(opencl, camera, &scene);
     CLCopyToSDL(opencl, screen);
 }
 

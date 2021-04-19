@@ -35,6 +35,7 @@ struct ocl {
     cl::Buffer object_swap_buffer;
     cl::Buffer write_buffer;
     cl::Buffer temp_screen;
+    cl::Buffer joint_buffer;
 
     cl::Buffer kernel_sin;
     cl::Buffer kernel_regular;
@@ -49,7 +50,7 @@ void CLCopyToSDL(ocl &opencl, screen* screen);
 
 void CLRegisterObjects(ocl &opencl, Scene* scene);
 
-void CLRender(ocl &opencl, cl_camera camera, int pointsSize);
+void CLRender(ocl &opencl, cl_camera camera, Scene *scene);
 
 void MakeKernels(ocl &opencl, Scene &scene);
 

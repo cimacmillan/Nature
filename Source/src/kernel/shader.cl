@@ -68,10 +68,26 @@ __kernel void PointShader(__global uint * write_buffer, cl_camera camera, int sc
     }
 } 
 
+// Return the force against A when joint with B
+float2 resolveJoint(cl_point a, cl_point b, cl_joint joint) {
+    float dis = distance(a.pos, b.pos);
+
+    if (dis == 0) {
+        return (float2)(0.f, 0.f);
+    }
+
+    float2 norm = normalize(b.pos - a.pos);
+    float displacement = dis - joint.target;
+
+    float2 force = displacement * norm * 0.002f;
+
+    return force;
+}
+
 #define DISTANCE_MIN 0.5f
 #define DISTANCE_MAX 25.0f
 
-__kernel void PointResolver(__global cl_point * point_buffer, __global cl_point * point_destination_buffer) {
+__kernel void PointResolver(__global cl_point * point_buffer, __global cl_point * point_destination_buffer, __global cl_joint * joint_buffer, int jointCount) {
     int pointId = get_global_id(0);
     int pointSize = get_global_size(0);
 
@@ -80,20 +96,36 @@ __kernel void PointResolver(__global cl_point * point_buffer, __global cl_point 
     float2 force = (float2)(0.0f, 0.0f);
     float mass = 1.0f;
 
-    for (int i = 0; i < pointSize; i++) {
-        if (pointId == i) {
-            continue;
-        }
+    // for (int i = 0; i < pointSize; i++) {
+    //     if (pointId == i) {
+    //         continue;
+    //     }
         
-        float2 destPos = point_buffer[i].pos;
-        float2 destVel = point_buffer[i].vel;
+    //     float2 destPos = point_buffer[i].pos;
+    //     float2 destVel = point_buffer[i].vel;
 
-        float dis = max(min(distance(pos, destPos), DISTANCE_MAX), DISTANCE_MIN);
-        float2 normal = normalize(destPos - pos);
+    //     float dis = max(min(distance(pos, destPos), DISTANCE_MAX), DISTANCE_MIN);
+    //     float2 normal = normalize(destPos - pos);
 
-        float gravity = (1.0f / (dis * dis)) * 0.000001f;
-        force += (gravity * normal);
+    //     float gravity = (1.0f / (dis * dis)) * 0.000001f;
+    //     force += (gravity * normal);
+    // }
+
+    // TODO replace this with joint kernel
+    for (int i = 0; i < jointCount; i++) {
+        cl_joint joint = joint_buffer[i];
+
+        if (joint.pointA == pointId) {
+            force += resolveJoint(point_buffer[pointId], point_buffer[joint.pointB], joint);
+        }
+
+        if (joint.pointB == pointId) {
+            force += resolveJoint(point_buffer[pointId], point_buffer[joint.pointA], joint);
+        }
     }
+
+    float2 friction = -vel * 0.02f;
+    force += friction;
 
     float2 acc = force / mass;
 

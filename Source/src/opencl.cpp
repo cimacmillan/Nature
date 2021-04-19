@@ -48,12 +48,13 @@ void CLCopyToSDL(ocl &opencl, screen* screen) {
 }
 
 void CLRegisterObjects(ocl &opencl, Scene* scene){
-  opencl.queue.enqueueWriteBuffer(opencl.object_buffer, false, 0, scene->points.size() * sizeof(cl_point), scene->points.data());
+    opencl.queue.enqueueWriteBuffer(opencl.object_buffer, false, 0, scene->points.size() * sizeof(cl_point), scene->points.data());
+    opencl.queue.enqueueWriteBuffer(opencl.joint_buffer, false, 0, scene->joints.size() * sizeof(cl_joint), scene->joints.data());
 }
 
 float timeF = 0;
 int frame = 0;
-void CLRender(ocl &opencl, cl_camera camera, int pointsSize) {
+void CLRender(ocl &opencl, cl_camera camera, Scene *scene) {
 
     cl::Buffer readPointBuffer = opencl.object_buffer;
     cl::Buffer writePointBuffer = opencl.object_swap_buffer;
@@ -65,14 +66,16 @@ void CLRender(ocl &opencl, cl_camera camera, int pointsSize) {
 
     opencl.PointResolver.setArg(0, readPointBuffer);
     opencl.PointResolver.setArg(1, writePointBuffer);
-    opencl.queue.enqueueNDRangeKernel(opencl.PointResolver,cl::NullRange,cl::NDRange(pointsSize),cl::NullRange);
+    opencl.PointResolver.setArg(2, opencl.joint_buffer);
+    opencl.PointResolver.setArg(3, scene->joints.size());
+    opencl.queue.enqueueNDRangeKernel(opencl.PointResolver,cl::NullRange,cl::NDRange(scene->points.size()),cl::NullRange);
 
     opencl.PointShader.setArg(0,opencl.write_buffer);
     opencl.PointShader.setArg(1, camera);
     opencl.PointShader.setArg(2, SCREEN_WIDTH);
     opencl.PointShader.setArg(3, SCREEN_HEIGHT);
     opencl.PointShader.setArg(4, writePointBuffer);
-    opencl.queue.enqueueNDRangeKernel(opencl.PointShader,cl::NullRange,cl::NDRange(pointsSize),cl::NullRange);
+    opencl.queue.enqueueNDRangeKernel(opencl.PointShader,cl::NullRange,cl::NDRange(scene->points.size()),cl::NullRange);
     timeF += 1.0f;
     frame += 1;
 }
@@ -91,6 +94,7 @@ void MakeKernels(ocl &opencl, Scene &scene) {
     opencl.depth_buffer = cl::Buffer(opencl.context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * SCREEN_WIDTH * SCREEN_HEIGHT);
     opencl.object_buffer = cl::Buffer(opencl.context, CL_MEM_WRITE_ONLY, sizeof(cl_point) * scene.points.size());
     opencl.object_swap_buffer = cl::Buffer(opencl.context, CL_MEM_WRITE_ONLY, sizeof(cl_point) * scene.points.size());
+    opencl.joint_buffer = cl::Buffer(opencl.context, CL_MEM_WRITE_ONLY, sizeof(cl_joint) * scene.joints.size());
 
     opencl.write_buffer = cl::Buffer(opencl.context, CL_MEM_WRITE_ONLY, sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT);
 
