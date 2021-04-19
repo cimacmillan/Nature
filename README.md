@@ -21,9 +21,9 @@ TBD
 
 ### TODO
 
-* Implement joints / springs between particles
+* Render joints as lines
 * Optimise joints with a joint kernel
-* Render joints as coloured lines
+* Copy real world values for constants
 * Particle and floor collision with a radius
 
 
